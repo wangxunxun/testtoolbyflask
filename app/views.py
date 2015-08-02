@@ -4,7 +4,7 @@ Created on 2015年8月2日
 @author: wangxun
 '''
 from flask import render_template, session, redirect, url_for, flash
-from tools import ExportXmlByBeyondsoft
+from app.tools import ExportXmlByBeyondsoft
 from app.forms import NameForm,XmlForm
 import os
 from win32api import ShellExecute
