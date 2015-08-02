@@ -2,3 +2,4 @@
 /*.pydevproject
 /__pycache__/*.pyc
 /app/tools/__pycache__/*.pyc
+/app/__pycache__/*.pyc

@@ -1,27 +1,15 @@
-from flask import Flask, render_template, session, redirect, url_for, flash
-from flask_script import Manager
-from flask_bootstrap import Bootstrap
-from flask_moment import Moment
-from flask_wtf import Form
-from wtforms import StringField, SubmitField
-from wtforms.validators import Required
+'''
+Created on 2015年8月2日
+
+@author: wangxun
+'''
+from flask import render_template, session, redirect, url_for, flash
 from tools import ExportXmlByBeyondsoft
-from flask_wtf.file import FileField
-from forms import NameForm,XmlForm
+from app.forms import NameForm,XmlForm
 import os
 from win32api import ShellExecute
-from win32con import SW_SHOW, SW_SHOWNOACTIVATE, SW_SHOWNORMAL
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'hard to guess string'
-
-manager = Manager(app)
-bootstrap = Bootstrap(app)
-moment = Moment(app)
-
-
-
-    
-    
+from win32con import SW_SHOWNORMAL   
+from app import app
     
 @app.errorhandler(404)
 def page_not_found(e):
@@ -66,7 +54,7 @@ def xml():
                     aa =ExportXmlByBeyondsoft.changetoxml(excelname,sheetname,output,xmlname)  
                     try:                      
                         aa.run()
-                        ShellExecute(0,"open",xmlfile,"","",SW_SHOWNOACTIVATE)
+                        ShellExecute(0,"open",xmlfile,"","",SW_SHOWNORMAL)
                         flash('成功转换成XML文件')
 
                     except:
@@ -79,7 +67,7 @@ def xml():
                     aa =ExportXmlByBeyondsoft.changetoxml(excelname,sheetname,output,xmlname)
                     try:                      
                         aa.run()
-                        ShellExecute(0,"open",xmlfile,"","",SW_SHOWNOACTIVATE)
+                        ShellExecute(0,"open",xmlfile,"","",SW_SHOWNORMAL)
                         flash('成功转换成XML文件')
 
                     except:
@@ -92,12 +80,3 @@ def xml():
             flash('用例文件不存在')
         return redirect(url_for('xml'))
     return render_template('xml.html', form=form) 
-    
-    
-        
-        
-
-
-if __name__ == '__main__':
-    app.run()
-#    manager.run()
