@@ -4,3 +4,4 @@
 /app/tools/__pycache__/*.pyc
 /app/__pycache__/*.pyc
 /.settings/*.prefs
+/app/main/__pycache__/*.pyc

@@ -3,6 +3,19 @@ Created on 2015年7月31日
 
 @author: xun
 '''
-from app import app
+import os
+from app import create_app
 
-app.run()
+from flask_script import Manager
+
+
+
+
+app = create_app(os.getenv('FLASK_CONFIG') or 'default')
+manager = Manager(app)
+
+if __name__ == '__main__':
+  
+    
+    
+    app.run()
