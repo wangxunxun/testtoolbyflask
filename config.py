@@ -26,16 +26,18 @@ class Config:
 
 class DevelopmentConfig(Config):
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI= 'mysql://test:test@69.164.202.55/test'
+#    SQLALCHEMY_DATABASE_URI= 'mysql://test:test@69.164.202.55/test'
+    SQLALCHEMY_DATABASE_URI ='sqlite:///' + os.path.join(basedir, 'data.sqlite')
 
 
 class TestingConfig(Config):
     TESTING = True
     SQLALCHEMY_DATABASE_URI= 'mysql://test:test@69.164.202.55/test'
-
+    SQLALCHEMY_DATABASE_URI ='sqlite:///' + os.path.join(basedir, 'data.sqlite')
 
 class ProductionConfig(Config):
     SQLALCHEMY_DATABASE_URI= 'mysql://test:test@69.164.202.55/test'
+    SQLALCHEMY_DATABASE_URI ='sqlite:///' + os.path.join(basedir, 'data.sqlite')
 
 
 config = {

@@ -5,15 +5,18 @@ Created on 2015年8月2日
 '''
 from flask import render_template, session, redirect, url_for, flash
 from app.tools import ExportXmlByBeyondsoft
-from app.main.forms import NameForm,XmlForm,dailyreportForm,successForm
+from app.main.forms import NameForm,XmlForm,dailyreportForm,successForm,AddMemberForm,AddTeamForm
 import os
 from win32api import ShellExecute
 from win32con import SW_SHOWNORMAL   
 from . import main    
 import pymysql
 from ..email import send_email
-from audioop import tomono
-from pip._vendor.pkg_resources import issue_warning
+from ..models import db,Member,DaliyReport
+import datetime
+from app.models import Team
+from ..tools import SqlOperate
+
 
 createtable = "create table dailyreport(\
 email char (255),\
@@ -29,61 +32,97 @@ member char(255) character set gbk \
 @main.route('/', methods=['GET', 'POST'])
 def index():
     form = NameForm()
-    conn = pymysql.connect(host = "69.164.202.55",user = "test",passwd = "test",db = "test",port = 3306,charset = "utf8")
-    cur = conn.cursor()
     if form.validate_on_submit():
-        cur.execute("select username from users1 where username = %s",form.name.data)
-        username = cur.fetchone()
-        if username is None:
-            session['known'] = False
 
-            send_email("troy.wang@beyondsoft.com", 'New User',
-            'mail/new_user',username = form.name.data)
-        else:
-            session['known'] = True
-        session['name'] = form.name.data
-        form.name.data = ''
         return redirect(url_for('.index'))
     return render_template('index.html',
-    form = form, name = session.get('name'),
-    known = session.get('known', False))
+    form = form)
     
 @main.route('/dailyreport', methods=['GET', 'POST'])
 def dailyreport():
     form = dailyreportForm()
-    conn = pymysql.connect(host = "69.164.202.55",user = "test",passwd = "test",db = "test",port = 3306,charset = "utf8")
-    cur = conn.cursor()
+
+    
+
 
     if form.validate_on_submit():
+        emailresult = Member.query.all() 
+        emails = SqlOperate.getAllMemberEmail(emailresult)
         email = str(form.email.data)
+        name = form.name.data
         today = str(form.today.data)
         tomorrow = str(form.tomorrow.data)
         issue = str(form.issue.data)
-        cur.execute("INSERT INTO dailyreport(email, today, tomorrow, issue) VALUES ( '%s', '%s', '%s', '%s' )" % (email,today,tomorrow,issue))                                                                                       
-        conn.commit()
-        cur.close()
-        conn.close()
-        return redirect(url_for('.index'))
+        if email in emails:
+        
+            report = DaliyReport(email = email,name = name,today = today,tomorrow = tomorrow,issue = issue,datetime = datetime.datetime.now())
+            db.session.add(report)
+            db.session.commit()
+            flash("发送成功")
+        else:
+            flash("邮箱不存在")
+        return redirect(url_for('.dailyreport'))
     return render_template('dailyreport.html',form = form)
+
+@main.route('/addmember', methods=['GET', 'POST'])
+def addmember():
+    form = AddMemberForm()
+    result = Team.query.all() 
+    teams =SqlOperate.getAllTeamName(result)
+    emailresult = Member.query.all() 
+    emails = SqlOperate.getAllMemberEmail(emailresult)   
+    if form.validate_on_submit():
+        depart = form.depatment.data
+        email = form.email.data
+        name = form.name.data
+        if depart in teams:
+            if email not in emails:
+                
+                member = Member(team_name = depart,email = email,name = name)
+                db.session.add(member)
+                db.session.commit()
+                flash("添加成功")
+            else:
+                flash("邮箱已注册")
+        else:
+            flash("小组不存在")
+        return redirect(url_for('.addmember'))
+    return render_template('addmember.html',form = form)
+@main.route('/addteam', methods=['GET', 'POST'])
+def addteam():
+    form = AddTeamForm()
+    if form.validate_on_submit():      
+        team = form.team.data
+        result = Team.query.all() 
+        teams = SqlOperate.getAllTeamName(result)
+        if team not in teams:
+            team_db = Team(name = team)
+            db.session.add(team_db)
+            db.session.commit()
+            flash("添加成功")
+        else:
+            flash("这个小组已经存在")
+        return redirect(url_for('.addteam'))
+    return render_template('addteam.html',form = form)
+
 
 @main.route('/success', methods=['GET', 'POST'])
 def success():
     form = successForm()
-    conn = pymysql.connect(host = "69.164.202.55",user = "test",passwd = "test",db = "test",port = 3306,charset = "utf8")
-    cur = conn.cursor()
+    db.drop_all()
+    db.create_all()
 
     if form.validate_on_submit():
-        depart = "test"
-        cur.execute("select * from member where department = '%s'" % depart)
-        result = cur.fetchall()
-        cur.close()
-        conn.close()
+
+
+        result = Member.query.all()
+        print(result)
         i = 0 
         while i<len(result):
-            send_email(result[i][1], 'New User',
-            'mail/notify',email = result[i][1],team = depart)
+#            send_email(result[i].email, 'New User','mail/notify',name = result[i].name,team = result[i].team_name)
             i = i+1
-        return redirect(url_for('.index'))
+         
+        return redirect(url_for('.success'))
     return render_template('success.html',form = form)    
     
     
