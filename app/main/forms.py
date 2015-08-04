@@ -27,6 +27,16 @@ class dailyreportForm(Form):
     issue = StringField('遇到问题', validators=[Required()])
     submit = SubmitField('提交')
     
+class editreportForm(Form):
+    today = StringField('今日总结', validators=[Required()])
+    tomorrow = StringField('明日计划', validators=[Required()])
+    issue = StringField('遇到问题', validators=[Required()])
+    submit = SubmitField('提交')
+    
+class sendnotifyemailForm(Form):
+    email = StringField('邮箱', validators=[Required(),Email()])
+    submit = SubmitField('提交')
+    
 class successForm(Form):
     submit = SubmitField('提交')
     

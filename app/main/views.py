@@ -5,7 +5,7 @@ Created on 2015年8月2日
 '''
 from flask import render_template, session, redirect, url_for, flash
 from app.tools import ExportXmlByBeyondsoft
-from app.main.forms import NameForm,XmlForm,dailyreportForm,successForm,AddMemberForm,AddTeamForm
+from app.main.forms import NameForm,XmlForm,dailyreportForm,successForm,AddMemberForm,AddTeamForm,editreportForm,sendnotifyemailForm
 import os
 from win32api import ShellExecute
 from win32con import SW_SHOWNORMAL   
@@ -16,6 +16,7 @@ from ..models import db,Member,DaliyReport
 import datetime
 from app.models import Team
 from ..tools import SqlOperate
+from ..tools import CommomMethod
 
 
 createtable = "create table dailyreport(\
@@ -37,6 +38,42 @@ def index():
         return redirect(url_for('.index'))
     return render_template('index.html',
     form = form)
+    
+@main.route('/sendenotifymail', methods=['GET', 'POST'])
+def sendenotifymail():
+    form = sendnotifyemailForm()
+    token = CommomMethod.generate_report_token("59853844@qq.com", "wangxun", 3600)
+    if form.validate_on_submit():      
+        send_email(form.email.data, 'New User','mail/Copy of notify',name = "test",team = "ceshi",token=token)
+        return redirect(url_for('.sendenotifymail'))
+    return render_template('addteam.html',form = form)
+
+
+
+@main.route('/editreport/<token>', methods=['GET', 'POST'])
+def editreport(token):
+    form = editreportForm()
+    if form.validate_on_submit():
+        result = CommomMethod.edit_report(token)
+        emailresult = Member.query.all() 
+        emails = SqlOperate.getAllMemberEmail(emailresult)
+        email = result[0]
+        name = result[1]
+        print(email)
+        print(name)
+        today = str(form.today.data)
+        tomorrow = str(form.tomorrow.data)
+        issue = str(form.issue.data)
+        if email in emails:        
+            report = DaliyReport(email = email,name = name,today = today,tomorrow = tomorrow,issue = issue,datetime = datetime.datetime.now())
+            db.session.add(report)
+            db.session.commit()
+            flash("发送成功")
+        else:
+            flash("邮箱不存在")
+        return redirect(url_for('.dailyreport'))
+    return render_template('dailyreport.html',form = form)
+
     
 @main.route('/dailyreport', methods=['GET', 'POST'])
 def dailyreport():
