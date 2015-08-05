@@ -103,6 +103,7 @@ class DaliyReport(db.Model):
     __tablename__ = 'dailyreport'
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(255))
+    team = db.Column(db.String(255))
     name = db.Column(db.String(255))
     today = db.Column(db.String(255))
     tomorrow = db.Column(db.String(255))
@@ -114,7 +115,7 @@ class DaliyReport(db.Model):
 class Member(db.Model):
     __tablename__ = 'member'
     id = db.Column(db.Integer, primary_key=True)
-    team_name = db.Column(db.String(255),db.ForeignKey('team.name'))
+    team_name = db.Column(db.Text)
     name = db.Column(db.String(255))
     email = db.Column(db.String(255),unique =True)
     def __repr__(self):
@@ -124,7 +125,8 @@ class Team(db.Model):
     __tablename__ = 'team'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255),unique =True)
-    member = db.relationship('Member', backref='team', lazy='dynamic')
+    member =db.Column(db.Text)
+
 
     def __repr__(self):
         return '<Team %r>' % self.name

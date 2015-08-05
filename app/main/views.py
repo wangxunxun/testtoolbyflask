@@ -42,9 +42,23 @@ def index():
 @main.route('/sendenotifymail', methods=['GET', 'POST'])
 def sendenotifymail():
     form = sendnotifyemailForm()
-    token = CommomMethod.generate_report_token("59853844@qq.com", "wangxun", 3600)
-    if form.validate_on_submit():      
-        send_email(form.email.data, 'New User','mail/Copy of notify',name = "test",team = "ceshi",token=token)
+
+
+    if form.validate_on_submit():  
+        member = Member.query.filter_by(email = form.email.data).first()
+        if member:
+            email = member.email
+            name = member.name
+            teams = member.team_name
+            newteams = teams.split("/#/")
+             
+            i = 0
+            while i <len(newteams):   
+                token = CommomMethod.generate_report_token(email, name, newteams[i], 3600)
+                send_email(email, 'Daily report','mail/Copy of notify',name = name,team = newteams[i],token=token)
+                i=i+1
+        else:
+            flash("该邮箱不存在")
         return redirect(url_for('.sendenotifymail'))
     return render_template('addteam.html',form = form)
 
@@ -59,19 +73,18 @@ def editreport(token):
         emails = SqlOperate.getAllMemberEmail(emailresult)
         email = result[0]
         name = result[1]
-        print(email)
-        print(name)
+        team = result[2]
         today = str(form.today.data)
         tomorrow = str(form.tomorrow.data)
         issue = str(form.issue.data)
         if email in emails:        
-            report = DaliyReport(email = email,name = name,today = today,tomorrow = tomorrow,issue = issue,datetime = datetime.datetime.now())
+            report = DaliyReport(email = email,team = team,name = name,today = today,tomorrow = tomorrow,issue = issue,datetime = datetime.datetime.now())
             db.session.add(report)
             db.session.commit()
             flash("发送成功")
         else:
             flash("邮箱不存在")
-        return redirect(url_for('.dailyreport'))
+        return redirect(url_for('.success'))
     return render_template('dailyreport.html',form = form)
 
     
@@ -116,11 +129,42 @@ def addmember():
             if email not in emails:
                 
                 member = Member(team_name = depart,email = email,name = name)
+                eteam = Team.query.filter_by(name = depart).first()
+                oldmember = eteam.member
+                if oldmember:
+                    newmember = oldmember + "/#/" +email
+                    eteam.member = newmember    
+                    db.session.add(eteam)                   
+                else:
+                    eteam.member = email
+                    db.session.add(eteam)
                 db.session.add(member)
                 db.session.commit()
                 flash("添加成功")
             else:
-                flash("邮箱已注册")
+                nm = Member.query.filter_by(email = email).first()
+                oldteam = nm.team_name
+                teams = oldteam.split("/#/")
+                if depart not in teams:
+                    newteam = oldteam + "/#/" +depart
+                    nm.team_name = newteam
+                    eteam = Team.query.filter_by(name = depart).first()
+                    oldmember = eteam.member
+                    if oldmember:
+                        newmember = oldmember + "/#/" +email
+                        eteam.member = newmember    
+                        db.session.add(eteam)                   
+    
+                    else:
+                        eteam.member = email
+                        db.session.add(eteam)
+                                                                  
+                    db.session.add(nm)
+                    db.session.commit()
+                    flash("添加成功")
+                else:
+                    flash("该人员已加入该小组")
+                
         else:
             flash("小组不存在")
         return redirect(url_for('.addmember'))
