@@ -16,7 +16,7 @@ from ..models import db,Member,DaliyReport
 import datetime
 from app.models import Team
 from ..tools import SqlOperate
-from ..tools import CommomMethod
+from ..tools import AutoSendMail
 
 
 createtable = "create table dailyreport(\
@@ -54,7 +54,7 @@ def sendenotifymail():
              
             i = 0
             while i <len(newteams):   
-                token = CommomMethod.generate_report_token(email, name, newteams[i], 3600)
+                token = AutoSendMail.encrypt().generate_report_token(email, name, newteams[i], 3600)
                 send_email(email, 'Daily report','mail/Copy of notify',name = name,team = newteams[i],token=token)
                 i=i+1
         else:
@@ -68,7 +68,9 @@ def sendenotifymail():
 def editreport(token):
     form = editreportForm()
     if form.validate_on_submit():
-        result = CommomMethod.edit_report(token)
+
+        result = AutoSendMail.encrypt().edit_report(token)
+        print(result)
         emailresult = Member.query.all() 
         emails = SqlOperate.getAllMemberEmail(emailresult)
         email = result[0]
@@ -190,19 +192,9 @@ def addteam():
 @main.route('/success', methods=['GET', 'POST'])
 def success():
     form = successForm()
-    db.drop_all()
-    db.create_all()
-
     if form.validate_on_submit():
-
-
-        result = Member.query.all()
-        print(result)
-        i = 0 
-        while i<len(result):
-#            send_email(result[i].email, 'New User','mail/notify',name = result[i].name,team = result[i].team_name)
-            i = i+1
-         
+        db.drop_all()
+        db.create_all()       
         return redirect(url_for('.success'))
     return render_template('success.html',form = form)    
     
