@@ -193,8 +193,8 @@ def addteam():
 def success():
     form = successForm()
     if form.validate_on_submit():
-        db.drop_all()
-        db.create_all()       
+#        db.drop_all()
+#        db.create_all()       
         return redirect(url_for('.success'))
     return render_template('success.html',form = form)    
     
