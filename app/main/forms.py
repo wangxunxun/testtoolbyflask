@@ -22,6 +22,7 @@ class XmlForm(Form):
 class dailyreportForm(Form):
     email = StringField('邮箱', validators=[Required(),Email()])
     name = StringField('姓名', validators=[Required()])
+    team =StringField('小组', validators=[Required()])
     today = StringField('今日总结', validators=[Required()])
     tomorrow = StringField('明日计划', validators=[Required()])
     issue = StringField('遇到问题', validators=[Required()])

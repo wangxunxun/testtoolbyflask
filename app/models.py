@@ -114,22 +114,31 @@ class DaliyReport(db.Model):
     
 class Member(db.Model):
     __tablename__ = 'member'
-    id = db.Column(db.Integer, primary_key=True)
-    team_name = db.Column(db.Text)
-    name = db.Column(db.String(255))
+    id = db.Column(db.Integer, primary_key=True,unique =True)
     email = db.Column(db.String(255),unique =True)
+    name = db.Column(db.String(255))
+    
     def __repr__(self):
         return '<Member %r>' % self.name
 
 class Team(db.Model):
     __tablename__ = 'team'
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True,unique =True)
     name = db.Column(db.String(255),unique =True)
-    member =db.Column(db.Text)
-
 
     def __repr__(self):
         return '<Team %r>' % self.name
+    
+class Team_member(db.Model):
+    __tablename__ = 'teammember'
+    id = db.Column(db.Integer, primary_key=True,unique =True)
+    teamid = db.Column(db.Integer)
+    teamname = db.Column(db.String(255))
+    memberid = db.Column(db.Integer)
+    memberemail = db.Column(db.String(255))
+
+    def __repr__(self):
+        return '<Team_member %r>' % self.teamid
     
     
     

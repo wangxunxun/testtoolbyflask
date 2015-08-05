@@ -9,6 +9,8 @@ import os
 import smtplib  
 from email.mime.text import MIMEText  
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+from time import sleep
+import datetime
 '''
 def autosendmail():
     while True:
@@ -30,29 +32,42 @@ def autosendmail():
 class oprsql:
     def __init__(self,sql):
         self.sql = sql
+        self.coon = sqlite3.connect(self.getcurrentpath() +self.sql)
+        self.cur=self.coon.cursor()
         
     def getcurrentpath(self):
         homedir = os.getcwd()
         currentpath = homedir[:homedir.find("app")]
         currentpath=currentpath.replace("\\","/")
         return currentpath
-    
+
     def getmembers(self):                
-        coon = sqlite3.connect(self.getcurrentpath() +self.sql)
-        cur=coon.cursor()
-        cur.execute('select * from member')
-        result=cur.fetchall()
+
+        self.cur.execute('select * from member')
+        result=self.cur.fetchall()
+        print(result)
         i = 0
         members = []
         while i<len(result):
             member ={}
-            email = result[i][3]
-            teams = result[i][1].split("/#/")
+            email = result[i][1]
             name = result[i][2]
-            member.setdefault("email",email)
-            member.setdefault("teams",teams)
-            member.setdefault("name",name)
-            members.append(member)
+            self.cur.execute('select teamname from teammember where memberemail = "%s"'%email)
+            teams = self.cur.fetchall()
+            print(teams)
+            if len(teams) ==1:
+                member.setdefault("email",email)
+                member.setdefault("name",name)
+                member.setdefault('team',teams[0][0])                
+                members.append(member)
+            else:
+                j = 0
+                while j<len(teams):
+                    member.setdefault("email",email)
+                    member.setdefault("name",name)
+                    member.setdefault('team',teams[j][0])                
+                    members.append(member)     
+                    j=j+1               
             i =i +1
             
         print(members)
@@ -69,13 +84,13 @@ class encrypt:
             data = s.loads(token)
         except:
             return False
-        result = []
+        result = {}
         email = data.get('email')
         name = data.get('name')
         team = data.get('team')
-        result.append(email)
-        result.append(name)
-        result.append(team)
+        result.setdefault('email',email)
+        result.setdefault('name',name)
+        result.setdefault('team',team)
         return result
     
     
@@ -112,32 +127,37 @@ class sendmail:
         i = 0
         while i<len(members):
             email = members[i].get('email')
-            teams = members[i].get('teams')
+            team = members[i].get('team')
             name = members[i].get('name')
-            j=0
-            while j <len(teams):
-                token = encrypt.generate_report_token(email, name, teams[j], 3600)
-                token = str(token)
-                token = token[2:len(token)-1]
-    
-                url ="http://127.0.0.1:5000/editreport/"+token
-            
-        
-                content = "<h5>Hello "+name+",</h5>\
-            <p>您今天的日报链接已经创建，请于今天18:30 前填写提交.</p>\
-            <p>本日报隶属于<strong>"+teams[j]+"</strong>小组</p>\
-            <p>链接地址: <a href="+url+">click here</a></p>\
-            谢谢"
-            
-                mailto_list=[email] 
 
-                if self.send_mail(mailto_list,"QA Team小组-日报创建提醒 ",content):  
-                    print("发送成功")  
-                else:  
-                    print("发送失败")  
-                j = j+1
+            token = encrypt.generate_report_token(email, name, team, 3600)
+            token = str(token)
+            token = token[2:len(token)-1]
+
+            url ="http://127.0.0.1:5000/editreport/"+token
+        
+    
+            content = "<h5>Hello "+name+",</h5>\
+        <p>您今天的日报链接已经创建，请于今天18:30 前填写提交.</p>\
+        <p>本日报隶属于<strong>"+team+"</strong>小组</p>\
+        <p>链接地址: <a href="+url+">click here</a></p>\
+        谢谢"
+        
+            mailto_list=[email] 
+
+            if self.send_mail(mailto_list,"QA Team小组-日报创建提醒 ",content):  
+                print("发送成功")  
+            else:  
+                print("发送失败")  
+
                 
             i =i+1        
+    def dingshi(self):
+        while True:
+            if datetime.datetime.now().strftime('%H:%M:%S') == "23:08:00":
+                self.autosend()
+                print(1111)
+                sleep(1)
         
         
         
@@ -152,7 +172,8 @@ if __name__ == '__main__':
     mail_pass="wangxun2"   #口令 
     mail_postfix="163.com"  #发件箱的后缀
     a = sendmail(mail_host,mail_user,mail_pass,mail_postfix)
-    a.autosend()
+#    a.autosend()
+    a.dingshi()
     
     
     
