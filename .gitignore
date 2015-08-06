@@ -5,3 +5,4 @@
 /app/__pycache__/*.pyc
 /.settings/*.prefs
 /app/main/__pycache__/*.pyc
+/app/auth/__pycache__/*.pyc

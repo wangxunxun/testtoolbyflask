@@ -19,6 +19,8 @@ class Config:
     FLASKY_MAIL_SENDER = 'Flasky Admin <beyondsoftbugzilla@163.com>'
     FLASKY_ADMIN = 'wangxun'
     FLASKY_POSTS_PER_PAGE = 20
+    host = "10.27.0.122"
+    port = 5000
     @staticmethod
     def init_app(app):
         pass

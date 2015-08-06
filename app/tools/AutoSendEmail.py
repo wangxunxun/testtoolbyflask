@@ -11,75 +11,70 @@ from email.mime.text import MIMEText
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from time import sleep
 import datetime
-'''
-def autosendmail():
-    while True:
-        if datetime.datetime.now().strftime('%H:%M:%S') == "17:26:00":
-            conn = pymysql.connect(host = "69.164.202.55",user = "test",passwd = "test",db = "test",port = 3306,charset = "utf8")
-            cur = conn.cursor()
-            depart = "test"
-            cur.execute("select * from member where department = '%s'" % depart)
-            result = cur.fetchall()
-            cur.close()
-            conn.close()
-            i = 0 
-            while i<len(result):
-                send_email(result[i][1], 'New User',
-                'mail/notify',email = result[i][1],team = depart)
-                i = i+1
-            time.sleep(1)
- '''           
+import time, os, sched 
+import random,threading,time
+from queue import Queue
+from config import Config
+
+    
+
+
 class oprsql:
     def __init__(self,sql):
         self.sql = sql
-        self.coon = sqlite3.connect(self.getcurrentpath() +self.sql)
+        self.coon = sqlite3.connect(self.sql)
         self.cur=self.coon.cursor()
         
     def getcurrentpath(self):
         homedir = os.getcwd()
+        print(homedir)
         currentpath = homedir[:homedir.find("app")]
-        currentpath=currentpath.replace("\\","/")
+        currentpath=homedir.replace("\\","/")+"/"
+        print(currentpath)
         return currentpath
 
     def getmembers(self):                
 
         self.cur.execute('select * from member')
         result=self.cur.fetchall()
-        print(result)
         i = 0
         members = []
         while i<len(result):
-            member ={}
+            
             email = result[i][1]
             name = result[i][2]
             self.cur.execute('select teamname from teammember where memberemail = "%s"'%email)
             teams = self.cur.fetchall()
-            print(teams)
             if len(teams) ==1:
+                member ={}
                 member.setdefault("email",email)
                 member.setdefault("name",name)
                 member.setdefault('team',teams[0][0])                
                 members.append(member)
             else:
                 j = 0
+                
                 while j<len(teams):
+                    member ={}
                     member.setdefault("email",email)
                     member.setdefault("name",name)
                     member.setdefault('team',teams[j][0])                
                     members.append(member)     
                     j=j+1               
             i =i +1
-            
         print(members)
         return members
     
 class encrypt:
+
     def generate_report_token(self,email,name,team,expiration=3600):
-        s = Serializer('hard to guess string', expiration)
+        SECRET_KEY = Config().SECRET_KEY
+        s = Serializer(SECRET_KEY, expiration)
         return s.dumps({'email':email,'name':name,'team':team})
     
     def edit_report(self,token):
-        s = Serializer('hard to guess string')
+        SECRET_KEY = Config().SECRET_KEY
+        s = Serializer(SECRET_KEY)
         try:
             data = s.loads(token)
         except:
@@ -96,11 +91,13 @@ class encrypt:
     
 class sendmail:
     
-    def __init__(self,host,user,pas,postfix):
+    def __init__(self,host,user,pas,sqlite):
         self.host = host
         self.user = user
         self.pas = pas
-        self.postfix = postfix
+        self.sql =sqlite
+        self.schedule = sched.scheduler(time.time, time.sleep) 
+
         
 
     
@@ -112,8 +109,8 @@ class sendmail:
         msg['To'] = ";".join(to_list)  
         try:  
             s = smtplib.SMTP()  
-            s.connect(mail_host)  #连接smtp服务器
-            s.login(mail_user,mail_pass)  #登陆服务器
+            s.connect(self.host)  #连接smtp服务器
+            s.login(self.user,self.pas)  #登陆服务器
             s.sendmail(me, to_list, msg.as_string())  #发送邮件
             s.close()  
             return True  
@@ -122,7 +119,7 @@ class sendmail:
             return False  
         
     def autosend(self):
-        members = oprsql("data.sqlite")
+        members = oprsql(self.sql)
         members = members.getmembers()
         i = 0
         while i<len(members):
@@ -133,8 +130,10 @@ class sendmail:
             token = encrypt.generate_report_token(email, name, team, 3600)
             token = str(token)
             token = token[2:len(token)-1]
+            host = Config().host
+            port = Config().port
 
-            url ="http://127.0.0.1:5000/editreport/"+token
+            url ="http://"+host+":"+str(port)+"/editreport/"+token
         
     
             content = "<h5>Hello "+name+",</h5>\
@@ -154,27 +153,72 @@ class sendmail:
             i =i+1        
     def dingshi(self):
         while True:
-            if datetime.datetime.now().strftime('%H:%M:%S') == "23:08:00":
+            if datetime.datetime.now().strftime('%H:%M:%S') == "13:51:00":
                 self.autosend()
-                print(1111)
                 sleep(1)
+
+    def perform_command(self,inc):
+        self.schedule.enter(inc, 0, self.perform_command, (inc,))  
+        self.autosend()
+                
+    def timming_exe(self,inc = 60): 
+        # enter用来安排某事件的发生时间，从现在起第n秒开始启动 
+        self.schedule.enter(inc, 0, self.perform_command, (inc,)) 
+        # 持续运行，直到计划时间队列变成空为止 
+        self.schedule.run()         
         
-        
-        
-        
+class Producer(threading.Thread):
+    def __init__(self, t_name, queue):
+        threading.Thread.__init__(self,name=t_name)
+        self.data=queue
+    def run(self):
+        while True:
+            if datetime.datetime.now().strftime('%H:%M:%S') == "15:09:00":
+                self.data.put(1)
+                print(self.data)
+                sleep(1)
+       
+class Consumer(threading.Thread):
+    def __init__(self,t_name,queue):
+        threading.Thread.__init__(self,name=t_name)
+        self.data=queue
+    def run(self):
+        while 1:
+            try:
+                val_even = self.data.get(1,86400) #get(self, block=True, timeout=None) ,1就是阻塞等待,5是超时5秒
+                if val_even == 1:
+                    mail_host="smtp.163.com"  #设置服务器
+                    mail_user="beyondsoftbugzilla@163.com"    #用户名
+                    mail_pass="wangxun2"   #口令 
+                    sql = 'C:/Users/xun/workspace/testtoolbyflask/data.sqlite'
+                    a = sendmail(mail_host,mail_user,mail_pass,sql)
+                    a.autosend()
+            except:   #等待输入，超过5秒 就报异常
+                print ("%s: %s finished!" %(time.ctime(),self.getName()))
+                break        
 
 
 if __name__ == '__main__':  
     
-    
+#    SECRET_KEY = Config().SECRET_KEY
+#    print(SECRET_KEY)
     mail_host="smtp.163.com"  #设置服务器
     mail_user="beyondsoftbugzilla@163.com"    #用户名
     mail_pass="wangxun2"   #口令 
-    mail_postfix="163.com"  #发件箱的后缀
-    a = sendmail(mail_host,mail_user,mail_pass,mail_postfix)
+    sql = 'C:/Users/xun/workspace/testtoolbyflask/data.sqlite'
+    a = sendmail(mail_host,mail_user,mail_pass,sql)
+    t =threading.Thread(target=a.dingshi)
+#    t.start()
 #    a.autosend()
-    a.dingshi()
-    
-    
+#    a.timming_exe(120)
+#    a.dingshi()
+    queue = Queue()
+    producer = Producer('Pro.', queue)
+    consumer = Consumer('Con_even.', queue)
+#    producer.setDaemon(True)
+#    consumer.setDaemon(True)
+    print(111)
+    producer.start()
+    consumer.start()
     
 
