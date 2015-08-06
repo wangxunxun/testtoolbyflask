@@ -68,12 +68,12 @@ class oprsql:
 class encrypt:
 
     def generate_report_token(self,email,name,team,expiration=3600):
-        SECRET_KEY = Config().SECRET_KEY
+        SECRET_KEY = Config.SECRET_KEY
         s = Serializer(SECRET_KEY, expiration)
         return s.dumps({'email':email,'name':name,'team':team})
     
     def edit_report(self,token):
-        SECRET_KEY = Config().SECRET_KEY
+        SECRET_KEY = Config.SECRET_KEY
         s = Serializer(SECRET_KEY)
         try:
             data = s.loads(token)
@@ -130,8 +130,8 @@ class sendmail:
             token = encrypt.generate_report_token(email, name, team, 3600)
             token = str(token)
             token = token[2:len(token)-1]
-            host = Config().host
-            port = Config().port
+            host = Config.host
+            port = Config.port
 
             url ="http://"+host+":"+str(port)+"/editreport/"+token
         

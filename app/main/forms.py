@@ -8,6 +8,7 @@ from wtforms import StringField, SubmitField
 from wtforms.validators import Required,Email
 from wtforms.fields.core import SelectField
 from random import choice
+from wtforms.fields.simple import TextAreaField
 class NameForm(Form):
     name = StringField('What is your name?', validators=[Required()])
     submit = SubmitField('Submit')
@@ -29,9 +30,9 @@ class dailyreportForm(Form):
     submit = SubmitField('提交')
     
 class editreportForm(Form):
-    today = StringField('今日总结', validators=[Required()])
-    tomorrow = StringField('明日计划', validators=[Required()])
-    issue = StringField('遇到问题', validators=[Required()])
+    today = TextAreaField('今日总结', validators=[Required()])
+    tomorrow = TextAreaField('明日计划', validators=[Required()])
+    issue = TextAreaField('遇到问题', validators=[Required()])
     submit = SubmitField('提交')
     
 class sendnotifyemailForm(Form):

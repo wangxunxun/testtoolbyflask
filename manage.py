@@ -15,8 +15,8 @@ from app.tools.AutoSendEmail import Consumer,Producer
 from ctypes.test.test_errno import threading
     
 
-host = Config().host
-port = Config().port
+host = Config.host
+port = Config.port
 
 app = create_app(os.getenv('FLASK_CONFIG') or 'default')
 
@@ -35,6 +35,7 @@ if __name__ == '__main__':
 
 
     app.run(host=host,port=port)
+#    manager.run()
 
 
 

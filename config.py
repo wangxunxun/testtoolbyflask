@@ -17,7 +17,7 @@ class Config:
     MAIL_PASSWORD = 'wangxun2'
     FLASKY_MAIL_SUBJECT_PREFIX = '[Flasky]'
     FLASKY_MAIL_SENDER = 'Flasky Admin <beyondsoftbugzilla@163.com>'
-    FLASKY_ADMIN = 'wangxun'
+    FLASKY_ADMIN = '59853844@qq.com'
     FLASKY_POSTS_PER_PAGE = 20
     host = "10.27.0.122"
     port = 5000

@@ -17,18 +17,22 @@ import datetime
 from app.models import Team
 from app.tools import CommonMethod
 from app.tools import AutoSendEmail
+from ..decorators import admin_required, permission_required
+from ..models import Permission
+from flask_login import login_user,logout_user,login_required,current_user
 
+@main.route('/admin')
+@login_required
+@admin_required
+def for_admins_only():
+    return "For administrators!"
 
-createtable = "create table dailyreport(\
-email char (255),\
-today char(255) character set gbk ,\
-tomorrow char(255) character set gbk,\
-issue char(255) character set gbk,\
-data timestamp\
-)"
-createtable = "create table member(department char (255) character set gbk,\
-member char(255) character set gbk \
-)"
+@main.route('/moderator')
+@login_required
+@permission_required(Permission.MODERATE_COMMENTS)
+def for_moderators_only():
+    return "For comment moderators!"
+
 
 @main.route('/', methods=['GET', 'POST'])
 def index():
@@ -40,6 +44,8 @@ def index():
     form = form)
     
 @main.route('/sendenotifymail', methods=['GET', 'POST'])
+@login_required
+@admin_required
 def sendenotifymail():
     form = sendnotifyemailForm()
     email = form.email.data
@@ -111,6 +117,8 @@ def dailyreport():
 
 
 @main.route('/addmember', methods=['GET', 'POST'])
+@login_required
+@admin_required
 def addmember():
     form = AddMemberForm()
     if form.validate_on_submit():
@@ -168,6 +176,8 @@ def addmember():
         return redirect(url_for('.addmember'))
     return render_template('addmember.html',form = form)
 @main.route('/addteam', methods=['GET', 'POST'])
+@login_required
+@admin_required
 def addteam():
     form = AddTeamForm()
     if form.validate_on_submit():      
