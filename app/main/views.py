@@ -228,6 +228,7 @@ def xml():
                         aa.run()
                         ShellExecute(0,"open",xmlfile,"","",SW_SHOWNORMAL)
                         flash('成功转换成XML文件')
+                        return redirect(url_for('.success'))
 
                     except:
                         flash('请参照用例模板设计用例')
@@ -241,6 +242,7 @@ def xml():
                         aa.run()
                         ShellExecute(0,"open",xmlfile,"","",SW_SHOWNORMAL)
                         flash('成功转换成XML文件')
+                        return redirect(url_for('.success'))
 
                     except:
                         flash('请参照用例模板设计用例')
@@ -250,5 +252,8 @@ def xml():
                 
         else:
             flash('用例文件不存在')
-        return redirect(url_for('.success'))
+        return redirect(url_for('.xml'))
     return render_template('xml.html', form=form) 
+
+
+    
