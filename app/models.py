@@ -160,6 +160,7 @@ class Member(db.Model):
     id = db.Column(db.Integer, primary_key=True,unique =True)
     email = db.Column(db.String(255),unique =True)
     name = db.Column(db.String(255))
+    teams = db.relationship('Team_member', backref='member', lazy='dynamic')
     
     def __repr__(self):
         return '<Member %r>' % self.name
@@ -168,6 +169,7 @@ class Team(db.Model):
     __tablename__ = 'team'
     id = db.Column(db.Integer, primary_key=True,unique =True)
     name = db.Column(db.String(255),unique =True)
+    members = db.relationship('Team_member', backref='team', lazy='dynamic')
 
     def __repr__(self):
         return '<Team %r>' % self.name
@@ -175,9 +177,9 @@ class Team(db.Model):
 class Team_member(db.Model):
     __tablename__ = 'teammember'
     id = db.Column(db.Integer, primary_key=True,unique =True)
-    teamid = db.Column(db.Integer)
+    teamid = db.Column(db.Integer,db.ForeignKey('team.id'))
     teamname = db.Column(db.String(255))
-    memberid = db.Column(db.Integer)
+    memberid = db.Column(db.Integer,db.ForeignKey('member.id'))
     memberemail = db.Column(db.String(255))
 
     def __repr__(self):
