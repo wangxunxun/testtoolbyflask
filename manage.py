@@ -34,7 +34,7 @@ manager.add_command('db', MigrateCommand)
 if __name__ == '__main__':
 
 
-    app.run(host=host,port=port)
+    app.run()
 #    manager.run()
 
 

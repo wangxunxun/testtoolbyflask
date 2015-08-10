@@ -151,7 +151,7 @@ class DaliyReport(db.Model):
     today = db.Column(db.String(255))
     tomorrow = db.Column(db.String(255))
     issue = db.Column(db.String(255))
-    datetime = db.Column(db.DateTime)
+    datetime = db.Column(db.DateTime,default = datetime.utcnow)
     def __repr__(self):
         return '<DaliyReport %r>' % self.email
     
