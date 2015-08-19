@@ -12,13 +12,11 @@ from win32con import SW_SHOWNORMAL
 from . import main    
 import pymysql
 from ..email import send_email
-from ..models import db,Member,DaliyReport,Team_member
+from ..models import db,Member,DaliyReport,Team_member,Team,Permission
 import datetime
-from app.models import Team
 from app.tools import CommonMethod
 from app.tools import AutoSendEmail
 from ..decorators import admin_required, permission_required
-from ..models import Permission
 from flask_login import login_user,logout_user,login_required,current_user
 
 @main.route('/admin')
@@ -118,80 +116,121 @@ def dailyreport():
 
 @main.route('/addmember', methods=['GET', 'POST'])
 @login_required
-@admin_required
 def addmember():
-    form = AddMemberForm()
-    if form.validate_on_submit():
-        depart = form.depatment.data
-        email = form.email.data
-        name = form.name.data
-        departs = depart.split("，")
-        print(departs)
-        result = Team.query.all()
-        allteams = []   
-        i = 0
-        while i < len(result):
-            allteams.append(result[i].name)
-            i = i+1
-        comresult = CommonMethod.compare(departs, allteams)
-        print(comresult)
-        if comresult ==True:
-            if not Member.query.filter_by(email = email).first():
+    teams = Team.query.all()
+    if request.method == 'POST':
+        email = request.form['email']
+        name = request.form['name']
+        chooseteams = request.form.getlist('teams')
+
+        if chooseteams:
+            if not Member.query.filter_by(email = email).all():
                 member = Member(email = email,name = name)
                 db.session.add(member)
-                db.session.commit()                        
-                i = 0
-                while i <len(departs):                                       
-                    member_id = Member.query.filter_by(email = email).first().id
-                    team_id = Team.query.filter_by(name = departs[i]).first().id
-                    teammember = Team_member(teamid = team_id,teamname = departs[i],memberid = member_id,memberemail = email)
-                    db.session.add(teammember)
-                    db.session.commit()                    
-                    i= i+1
-                flash("添加成功")
+                db.session.commit()
+                q_member = Member.query.filter_by(email = email).first()          
+                memberid = q_member.id
+                for teamname in chooseteams:
+                    q_team = Team.query.filter_by(name = teamname).first()
+                    teamid = q_team.id
+                    team = Team_member(teamid = teamid,memberid = memberid)
+                    db.session.add(team)
+                db.session.commit()
+                return redirect(url_for('.membermanage'))
             else:
-                member = Member.query.filter_by(email = email).first()
-                member.name = name
-                db.session.add(member)
-                db.session.commit()  
-                oldteams = Team_member.query.filter_by(memberemail = email).all()
-                i = 0
-                while i <len(oldteams):
-                    db.session.delete(oldteams[i])
-                    i = i+1
-                
-                i = 0
-                while i <len(departs):                                       
-                    member_id = Member.query.filter_by(email = email).first().id
-                    team_id = Team.query.filter_by(name = departs[i]).first().id
-                    teammember = Team_member(teamid = team_id,teamname = departs[i],memberid = member_id,memberemail = email)
-                    db.session.add(teammember)                
-                    i= i+1
-                flash("编辑成功")
-                
-
+                flash('该邮箱已注册，不能重复注册')
         else:
-            flash("有些小组不存在"+str(comresult))
-                
-        return redirect(url_for('.addmember'))
-    return render_template('addmember.html',form = form)
+            flash('请选择小组')
+    return render_template('addmember.html',teams = teams)
+
+
 @main.route('/addteam', methods=['GET', 'POST'])
 @login_required
-@admin_required
 def addteam():
-    form = AddTeamForm()
-    if form.validate_on_submit():      
-        team = form.team.data
-        result = Team.query.filter_by(name = team).first() 
-        if not result:
-            team_db = Team(name = team)
-            db.session.add(team_db)
+    if request.method =='POST':
+        teamname = request.form['teamname']
+        teamtype = request.form['teamtype']
+        if not Team.query.filter_by(name = teamname):
+            team = Team(name = teamname,type = teamtype)
+            db.session.add(team)
             db.session.commit()
-            flash("添加成功")
+            return redirect(url_for('.teammanage'))
         else:
-            flash("这个小组已经存在")
-        return redirect(url_for('.addteam'))
-    return render_template('addteam.html',form = form)
+            flash('该小组已存在，不能重复添加')
+    return render_template('addteam.html')
+
+@main.route('/deleteteam/<int:id>', methods=['GET', 'POST'])
+@login_required
+def deleteteam(id):
+    q_team = Team.query.filter_by(id = id).first()
+
+    q_teammembers = Team_member.query.filter_by(teamid = id).all()
+    print(q_teammembers)
+    for teammember in q_teammembers:
+        db.session.delete(teammember)
+    db.session.delete(q_team)
+    db.session.commit()
+    return redirect(url_for('.teammanage'))
+
+
+@main.route('/deletemember/<int:id>', methods=['GET', 'POST'])
+@login_required
+def deletemember(id):
+    q_member = Member.query.filter_by(id = id).first()
+
+    q_teammembers = Team_member.query.filter_by(memberid = id).all()
+    print(q_teammembers)
+    for teammember in q_teammembers:
+        db.session.delete(teammember)
+    db.session.delete(q_member)
+    db.session.commit()
+    return redirect(url_for('.membermanage'))
+@main.route('/teammanage', methods=['GET', 'POST'])
+@login_required
+def teammanage():
+    teams = Team.query.all()
+    teamdata = []
+    for team in teams:
+        teaminfo = {}
+        teaminfo.setdefault('id',team.id)
+        teaminfo.setdefault('name',team.name)
+        teaminfo.setdefault('type',team.type)
+        teammembers = []
+        for member in team.members:
+            meminfo = {}
+            mem = Member.query.filter_by(id =member.memberid).first()
+
+            meminfo.setdefault('id',mem.id)
+            meminfo.setdefault('email',mem.email)
+            meminfo.setdefault('name',mem.name)                
+            teammembers.append(meminfo)
+        teaminfo.setdefault('members',teammembers)
+        teamdata.append(teaminfo)
+                                  
+    return render_template('teammanage.html',teams = teamdata)
+
+@main.route('/membermanage', methods=['GET', 'POST'])
+@login_required
+def membermanage():
+    members = Member.query.all()
+    membersdata = []        
+    for member in members:
+        memberinfo = {}
+        memberinfo.setdefault('id',member.id)
+        memberinfo.setdefault('email',member.email)
+        memberinfo.setdefault('name',member.name)
+        teams = []
+        for team in member.teams:
+            data = Team.query.filter_by(id = team.teamid).first()
+            teaminfo = {}
+            teaminfo.setdefault('id',data.id)
+            teaminfo.setdefault('type',data.type)
+            teaminfo.setdefault('name',data.name)
+            teams.append(teaminfo)
+        memberinfo.setdefault('teams',teams)
+        membersdata.append(memberinfo) 
+    print(membersdata)     
+    return render_template('membermanage.html',members = membersdata)
 
 
 @main.route('/success', methods=['GET', 'POST'])

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}Flasky{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+</div>
+        <table border="1">
+		  <tr>
+		    <th>id</th>
+		    <th>邮箱</th>
+		    <th>姓名</th>
+		    <th>加入小组</th>
+		    <th>操作</th>
+		  </tr>
+		  {%for i in members%}
+		  <tr>
+		    <td>{{i.get('id')}}</td>
+		    <td>{{i.get('email')}}</td>
+		    <td>{{i.get('name')}}</td>
+		    <td>
+
+	    	{%for t in i.get('teams')%}
+	    		{{t.get('name')}}
+				{%if t.get('type') ==1%}
+					（日报组）<br>
+				{%elif t.get('type') ==2%}
+					（周报组）<br>
+				{%endif%}
+	    	{%endfor%}
+
+		    			    
+		    </td>
+		    <td><a href="/deletemember/{{i.get('id')}}">删除</a>
+		    <a href="/editmember/{{i.get('id')}}">编辑</a>
+		    </td>
+		  </tr>
+		  {%endfor%}
+		</table>
+{% endblock %}

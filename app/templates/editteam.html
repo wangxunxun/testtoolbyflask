@@ -6,11 +6,10 @@
 {% block page_content %}
 <div class="page-header">
 </div>
-<form method="post" onsubmit="return true"  action="">
-        
-            <span>小组:</span><input name="teamname" type="text" value="" required/><br>
-            <span>类型:</span>
-	            <select name = "teamtype">  
+    <form method="post" onsubmit="return true"  action="">        
+            <span>小组:</span><input name="teamname" type="text" value="{{team.name}}" /><br>
+            <span>类型</span>
+	            <select name = "type">  
 			  		<option value =1>日报组</option>  
 			  		<option value =2>周报组</option>   
 				</select>

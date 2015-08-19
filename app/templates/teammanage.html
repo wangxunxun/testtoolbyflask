@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}Flasky{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+</div>
+        <table border="1">
+		  <tr>
+		    <th>id</th>
+		    <th>名称</th>
+		    <th>类型</th>
+		    <th>成员</th>
+		    <th>操作</th>
+		  </tr>
+		  {%for i in teams%}
+		  <tr>
+		    <td>{{i.get('id')}}</td>
+		    <td>{{i.get('name')}}</td>
+		    
+		    {%if i.get('type')==1%}
+		    	<td>日报组</td>
+		    	<td>
+			    {%for m in i.get('members')%}
+			    	{{m.get('name')}}({{m.get('email')}}) <a href="/viewreport/{{m.get('id')}}!@{{i.get('id')}}!@{{i.get('type')}}">查看日报</a><br>
+			    {%endfor%}
+			    </td>
+		    </td>
+		    {%else%}
+		    	<td>周报组</td>
+			    <td>
+			    {%for m in i.get('members')%}
+			    	{{m.get('name')}}({{m.get('email')}}) <a href="/viewreport/{{m.get('id')}}!@{{i.get('id')}}!@{{i.get('type')}}">查看周报</a><br>
+			    {%endfor%}
+			    </td>
+		    {%endif%}		    
+		    <td><a href="/deleteteam/{{i.get('id')}}">删除</a>
+		    <a href="/editteam/{{i.get('id')}}">编辑</a>
+		    </td>
+		  </tr>
+		  {%endfor%}
+		</table>
+{% endblock %}

@@ -6,5 +6,33 @@
 {% block page_content %}
 <div class="page-header">
 </div>
-{{ wtf.quick_form(form) }}
+    <form method="post" onsubmit="return true"  action="" >
+        <div class="fix">
+        <div>邮　箱<input name="email" type="text" value="" required/></div>
+        <div>姓名<input name="name" type="text" value="" required/></div>
+        	请添加小组：<br>
+        	{%if teams%}
+        		{%for i in teams%}
+        			
+		            <input name="teams" type="checkbox" value={{i.name}} /><label>{{i.name}}
+		            {%if i.type ==1%}
+		            	（日报组）
+		            {%elif i.type ==2%}
+		            	（周报组）
+		            {%endif%}
+		            
+		            
+		             </label> <br>
+		        {%endfor%}
+		    {%else%}
+		    	没有创建任何小组<a href="/addteam">添加小组</a>
+
+		    {%endif%}
+		    
+        </div>
+
+        <div class="btn fix">
+            <input type="submit" class="modbtn1" value="完成"  />
+        </div>
+    </form>
 {% endblock %}

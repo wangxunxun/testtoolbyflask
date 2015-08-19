@@ -177,45 +177,58 @@ class User(UserMixin,db.Model):
 class DaliyReport(db.Model):
     __tablename__ = 'dailyreport'
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(255))
-    team = db.Column(db.String(255))
-    name = db.Column(db.String(255))
-    today = db.Column(db.String(255))
-    tomorrow = db.Column(db.String(255))
-    issue = db.Column(db.String(255))
+    memberid = db.Column(db.Integer)
+    teamid = db.Column(db.Integer)
+    today = db.Column(db.String())
+    tomorrow = db.Column(db.String())
+    issue = db.Column(db.String())
     datetime = db.Column(db.DateTime,default = datetime.utcnow)
     def __repr__(self):
-        return '<DaliyReport %r>' % self.email
+        return '<DaliyReport %r>' % self.id
+
+class WeeklyReport(db.Model):
+    __tablename__ = 'weeklyreport'
+    id = db.Column(db.Integer, primary_key=True)
+    memberid = db.Column(db.Integer)
+    teamid = db.Column(db.Integer)
+    currentweek = db.Column(db.String())
+    nextweek = db.Column(db.String())
+    issue = db.Column(db.String())
+    datetime = db.Column(db.DateTime,default = datetime.utcnow)
+    def __repr__(self):
+        return '<DaliyReport %r>' % self.id
     
 class Member(db.Model):
     __tablename__ = 'member'
     id = db.Column(db.Integer, primary_key=True,unique =True)
-    email = db.Column(db.String(255),unique =True)
-    name = db.Column(db.String(255))
+    email = db.Column(db.String(),unique =True)
+    name = db.Column(db.String())
+    datetime = db.Column(db.DateTime,default = datetime.utcnow)
     teams = db.relationship('Team_member', backref='member', lazy='dynamic')
     
     def __repr__(self):
-        return '<Member %r>' % self.name
+        return '<Member %r>' % self.id
 
 class Team(db.Model):
     __tablename__ = 'team'
     id = db.Column(db.Integer, primary_key=True,unique =True)
-    name = db.Column(db.String(255),unique =True)
+    name = db.Column(db.String(),unique =True)
+    type = db.Column(db.Integer, default =1)
+    datetime = db.Column(db.DateTime,default = datetime.utcnow)
     members = db.relationship('Team_member', backref='team', lazy='dynamic')
 
     def __repr__(self):
-        return '<Team %r>' % self.name
+        return '<Team %r>' % self.id
     
 class Team_member(db.Model):
     __tablename__ = 'teammember'
     id = db.Column(db.Integer, primary_key=True,unique =True)
     teamid = db.Column(db.Integer,db.ForeignKey('team.id'))
-    teamname = db.Column(db.String(255))
     memberid = db.Column(db.Integer,db.ForeignKey('member.id'))
-    memberemail = db.Column(db.String(255))
+
 
     def __repr__(self):
-        return '<Team_member %r>' % self.teamid
+        return '<Team_member %r>' % self.id
     
     
 class AnonymousUser(AnonymousUserMixin):
@@ -230,3 +243,4 @@ login_manager.anonymous_user = AnonymousUser
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+

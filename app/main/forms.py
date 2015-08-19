@@ -51,4 +51,5 @@ class AddMemberForm(Form):
     
 class AddTeamForm(Form):
     team = StringField('小组', validators=[Required()])
+    teamtype = SelectField
     submit = SubmitField('提交')
