@@ -153,8 +153,11 @@ class sendmail:
             i =i+1        
     def dingshi(self):
         while True:
-            if datetime.datetime.now().strftime('%H:%M:%S') == "13:51:00":
-                self.autosend()
+            if datetime.datetime.now().strftime('%H:%M:%S') == "10:13:00":
+                print(1111)
+#                self.autosend()
+                sleep(1)
+            else:
                 sleep(1)
 
     def perform_command(self,inc):

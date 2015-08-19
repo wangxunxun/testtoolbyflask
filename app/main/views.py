@@ -3,7 +3,7 @@ Created on 2015年8月2日
 
 @author: wangxun
 '''
-from flask import render_template, session, redirect, url_for, flash
+from flask import render_template, session, redirect, url_for, flash,request
 from app.tools import ExportXmlByBeyondsoft
 from app.main.forms import NameForm,XmlForm,dailyreportForm,successForm,AddMemberForm,AddTeamForm,editreportForm,sendnotifyemailForm
 import os
@@ -206,6 +206,20 @@ def success():
     
 @main.route('/xml', methods=['GET', 'POST'])
 def xml():
+    print(request.method)
+    
+    if request.method =='POST':
+        print(request.method)
+        print(request.form['excel'])
+        flash('3433')
+
+        return render_template('xml.html') 
+    return render_template('xml.html') 
+    
+    
+    
+'''    
+def xml():
     form = XmlForm()
     if form.validate_on_submit():
         excelname = form.excelname.data
@@ -254,6 +268,6 @@ def xml():
             flash('用例文件不存在')
         return redirect(url_for('.xml'))
     return render_template('xml.html', form=form) 
-
+'''
 
     

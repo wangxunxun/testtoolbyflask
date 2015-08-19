@@ -11,7 +11,7 @@ from flask import current_app, request
 from . import db
 from . import login_manager
 from flask_login import UserMixin,AnonymousUserMixin
-
+from app.exceptions import ValidationError
 class Permission:
     FOLLOW = 0x01
     COMMENT = 0x02
@@ -138,6 +138,38 @@ class User(UserMixin,db.Model):
     def is_administrator(self):
         return self.can(Permission.ADMINISTER)
     
+    def to_json(self):
+        json_user = {
+#            'url': url_for('api.get_post', id=self.id, _external=True),
+            'id': self.id,
+            'username': self.username,
+            'email': self.email
+
+        }
+        return json_user
+    @staticmethod
+    def from_json(json_post):
+        username = json_post.get('username')
+        email = json_post.get('email')
+        password = json_post.get('password')
+        
+        if username is None or username == '':
+            raise ValidationError('post does not have a body')
+        return User(username=username,email = email,password = password)
+
+    def generate_auth_token(self, expiration):
+        s = Serializer(current_app.config['SECRET_KEY'],
+                       expires_in=expiration)
+        return s.dumps({'id': self.id}).decode('ascii')
+
+    @staticmethod
+    def verify_auth_token(token):
+        s = Serializer(current_app.config['SECRET_KEY'])
+        try:
+            data = s.loads(token)
+        except:
+            return None
+        return User.query.get(data['id'])    
     def __repr__(self):
         return '<User %r>' % self.username
 

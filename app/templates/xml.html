@@ -7,5 +7,19 @@
 <div class="page-header">
     <h1>Hello, {% if name %}{{ name }}{% else %}Stranger{% endif %}!</h1>
 </div>
-{{ wtf.quick_form(form) }}
+
+<form method="post"  action="/xml">
+        <ul class="fix888">
+			<li><span>文件名</span><input name="excel" type="text" value="" /></li>
+			<li><span>输出文件夹</span><input name="sheet" type="text" value="" /></li>
+            <li><span>输出文件夹</span><input name="output" type="text" value="" /></li>
+            <li><span>xml文件名</span><input name="xmlname" type="text" value="" /></li>            
+        </ul>
+
+            <input type="submit" class="mod" value="提交" />
+
+    {% if errormsg %}
+    <div class="error_p">{{ errormsg }}</div>
+    </form>
+    {%endif%}
 {% endblock %}
