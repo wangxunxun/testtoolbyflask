@@ -266,13 +266,10 @@ if __name__ == '__main__':
 #    cc = sendAPI("http://127.0.0.1:5000/api/v1.0/users/",userdata)
 #    cc.run()
     a =oprMysql('69.164.202.55','test','test','test',3306,"utf8")
-    tablesname = a.getTablesName()
-    a.getTableHeader('message')
-    a.getTableData('message')
-    a.getTablesHeader(tablesname)
-    a.getTablesData(tablesname)
+
 #    a.toExcel('D:/demo.xls')
     
-    b = readExcel('D:/demo.xls')
-    print(b.readTable('MyClass'))
-    print(b.readTables(['MyClass']))
+#    b = readExcel('D:/demo.xls')
+
+
+#    print(content)
