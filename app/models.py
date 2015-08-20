@@ -152,10 +152,13 @@ class User(UserMixin,db.Model):
         username = json_post.get('username')
         email = json_post.get('email')
         password = json_post.get('password')
-        
         if username is None or username == '':
             raise ValidationError('post does not have a body')
-        return User(username=username,email = email,password = password)
+        if json_post.get('id'):
+            id = json_post.get('id')
+            return User(id = id, username=username,email = email,password = password)
+        else:
+            return User(username=username,email = email,password = password)
 
     def generate_auth_token(self, expiration):
         s = Serializer(current_app.config['SECRET_KEY'],
