@@ -233,6 +233,21 @@ class Team_member(db.Model):
     def __repr__(self):
         return '<Team_member %r>' % self.id
     
+class Version(db.Model):
+    __tablename__ = 'version'
+
+    id = db.Column(db.Integer, primary_key=True)
+    version_number = db.Column(db.String(45))
+    type = db.Column(db.Integer)
+    info = db.Column(db.Text)
+    is_shutdown = db.Column(db.Integer, nullable=False, server_default=db.text("'0'"))
+    download_url = db.Column(db.String(200))
+    create_time = db.Column(db.DateTime, nullable=False)
+    update_time = db.Column(db.DateTime, nullable=False)
+    creator = db.Column(db.Integer, nullable=False)
+    is_deleted = db.Column(db.Integer, nullable=False, server_default=db.text("'0'"))
+    def __repr__(self):
+        return '<version %r>' % self.id
     
 class AnonymousUser(AnonymousUserMixin):
     def can(self, permissions):
@@ -247,3 +262,6 @@ login_manager.anonymous_user = AnonymousUser
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+if __name__ == '__main__':
+    db.drop_all()
+    db.create_all()   
