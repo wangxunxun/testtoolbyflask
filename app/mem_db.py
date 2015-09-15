@@ -100,8 +100,8 @@ def errorStr(code, obj=None, string=""):
 
         for o in obj:
             so[o] = obj[o]
-
-        return json.dumps(so, separators=(',', ':'), ensure_ascii=False, encoding="utf-8")
+        
+        return json.dumps(so, separators=(',', ':'))
 
 
 def successDataStr(obj):

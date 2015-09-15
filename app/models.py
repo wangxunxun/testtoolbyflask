@@ -247,7 +247,7 @@ class Version(db.Model):
     creator = db.Column(db.Integer, nullable=False)
     is_deleted = db.Column(db.Integer, nullable=False, server_default=db.text("'0'"))
     def __repr__(self):
-        return '<version %r>' % self.id
+        return '<version %r>' % self.version_number
     
 class AnonymousUser(AnonymousUserMixin):
     def can(self, permissions):
